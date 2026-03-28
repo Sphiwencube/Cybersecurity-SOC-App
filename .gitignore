@@ -1,0 +1,29 @@
+# Angular frontend
+frontend/.angular/
+frontend/node_modules/
+frontend/dist/
+
+# Node (just in case)
+node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment variables
+.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build outputs
+dist/
+out-tsc/
+
+# IDE files
+.vscode/
+.idea/
+
+# Misc
+tmp/
