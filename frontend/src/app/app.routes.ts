@@ -1,6 +1,8 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './guards/auth.guard';
 import { roleGuard } from './guards/role.guard';
+import { ForgotPasswordComponent } from './components/forgot-password/forgot-password.component';
+import { EmailVerificationComponent } from './components/email-verification/email-verification.component';
 
 export const routes: Routes = [
   // Public routes (NO layout wrapper)
@@ -71,5 +73,7 @@ export const routes: Routes = [
   {
     path: '**',
     redirectTo: 'dashboard'
-  }
+  },
+  
+  { path: 'forgot-password', component: ForgotPasswordComponent }
 ];

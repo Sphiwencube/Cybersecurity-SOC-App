@@ -3,6 +3,7 @@ package com.soc.repository;
 import com.soc.model.Incident;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -40,4 +41,9 @@ public interface IncidentRepository extends JpaRepository<Incident, Long> {
     
     @Query("SELECT DATE(i.createdAt), COUNT(i) FROM Incident i WHERE i.createdAt >= :startDate GROUP BY DATE(i.createdAt)")
     List<Object[]> countByDate(LocalDateTime startDate);
+
+    List<Incident> findByCreatedAtAfter(LocalDateTime dateTime);
+    
+    @Query("SELECT COUNT(i) FROM Incident i WHERE i.createdAt > :since")
+    long countByCreatedAtAfter(@Param("since") LocalDateTime since);
 }

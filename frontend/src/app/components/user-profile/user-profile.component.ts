@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
+import { UserService } from '../../services/user.service';
 import { User, UpdateUserRequest } from '../../models/user.model';
 
 @Component({
@@ -11,44 +12,58 @@ import { User, UpdateUserRequest } from '../../models/user.model';
   imports: [CommonModule, FormsModule],
   template: `
     <div class="profile-page">
-      <div class="page-header" data-aos="fade-down">
+      <div class="page-header">
         <h2>My Profile</h2>
       </div>
       
       <div class="profile-grid">
         <!-- Avatar Card -->
-        <div class="profile-card avatar-card" data-aos="fade-up">
+        <div class="profile-card avatar-card">
           <div class="avatar-section">
-            <div class="avatar-wrapper">
+            <div class="avatar-wrapper" (click)="fileInput.click()">
               <img 
-                [src]="user?.avatarUrl || defaultAvatar" 
+                [src]="getAvatarUrl()" 
                 alt="Profile Avatar" 
                 class="profile-avatar"
+                (error)="onImageError($event)"
               />
-              <div class="avatar-overlay" (click)="triggerFileInput()">
+              <div class="avatar-overlay">
                 <i class="fas fa-camera"></i>
                 <span>Change Photo</span>
               </div>
+              <input 
+                #fileInput
+                type="file" 
+                accept="image/*"
+                (change)="onFileSelected($event)"
+                style="display: none"
+              />
             </div>
-            <input 
-              type="file" 
-              #fileInput 
-              style="display: none" 
-              accept="image/*"
-              (change)="onFileSelected($event)"
-            />
-            <h3 class="user-name">{{ user?.firstName }} {{ user?.lastName }}</h3>
-            <span class="user-role" [class]="user?.role?.toLowerCase()">{{ user?.role }}</span>
-          </div>
-          <div class="avatar-actions">
-            <button class="btn btn-secondary" (click)="setDefaultAvatar()">
-              Use Default Avatar
-            </button>
+            
+            <div class="upload-progress" *ngIf="uploadProgress > 0 && uploadProgress < 100">
+              <div class="progress-bar">
+                <div class="progress-fill" [style.width.%]="uploadProgress"></div>
+              </div>
+              <span>{{ uploadProgress }}%</span>
+            </div>
+            
+            <div class="avatar-actions">
+              <button class="btn btn-secondary" (click)="fileInput.click()">
+                <i class="fas fa-upload"></i> Choose File
+              </button>
+              <button class="btn btn-outline" (click)="setDefaultAvatar()">
+                <i class="fas fa-undo"></i> Use Default
+              </button>
+            </div>
+            
+            <div class="avatar-hint">
+              <small>Max size: 5MB. Formats: JPG, PNG, GIF</small>
+            </div>
           </div>
         </div>
         
         <!-- Profile Info Card -->
-        <div class="profile-card info-card" data-aos="fade-up" data-aos-delay="100">
+        <div class="profile-card info-card">
           <div class="card-header">
             <h3><i class="fas fa-user-edit"></i> Profile Information</h3>
           </div>
@@ -103,21 +118,11 @@ import { User, UpdateUserRequest } from '../../models/user.model';
         </div>
         
         <!-- Password Card -->
-        <div class="profile-card password-card" data-aos="fade-up" data-aos-delay="200">
+        <div class="profile-card password-card">
           <div class="card-header">
             <h3><i class="fas fa-lock"></i> Change Password</h3>
           </div>
           <form (ngSubmit)="updatePassword()">
-            <div class="form-group">
-              <label>Current Password</label>
-              <input 
-                type="password" 
-                [(ngModel)]="passwordData.currentPassword" 
-                name="currentPassword"
-                placeholder="Enter current password"
-                [disabled]="updatingPassword"
-              />
-            </div>
             <div class="form-group">
               <label>New Password</label>
               <input 
@@ -154,10 +159,12 @@ import { User, UpdateUserRequest } from '../../models/user.model';
       display: flex;
       flex-direction: column;
       gap: 1.5rem;
+      max-width: 1200px;
     }
     
     .page-header h2 {
       font-size: 1.5rem;
+      margin: 0;
     }
     
     .profile-grid {
@@ -175,7 +182,7 @@ import { User, UpdateUserRequest } from '../../models/user.model';
     .profile-card {
       background: var(--card-bg);
       border: 1px solid var(--border-color);
-      border-radius: var(--radius-lg);
+      border-radius: 12px;
       padding: 1.5rem;
     }
     
@@ -192,7 +199,7 @@ import { User, UpdateUserRequest } from '../../models/user.model';
       flex-direction: column;
       align-items: center;
       gap: 1rem;
-      margin-bottom: 1.5rem;
+      width: 100%;
     }
     
     .avatar-wrapper {
@@ -202,6 +209,7 @@ import { User, UpdateUserRequest } from '../../models/user.model';
       border-radius: 50%;
       overflow: hidden;
       cursor: pointer;
+      border: 3px solid var(--accent-cyan);
     }
     
     .profile-avatar {
@@ -240,46 +248,40 @@ import { User, UpdateUserRequest } from '../../models/user.model';
       margin-bottom: 0.5rem;
     }
     
-    .avatar-overlay span {
-      font-size: 0.75rem;
+    .upload-progress {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
     
-    .user-name {
-      font-size: 1.25rem;
-      font-weight: 600;
-      color: var(--text-primary);
+    .progress-bar {
+      flex: 1;
+      height: 6px;
+      background: var(--border-color);
+      border-radius: 3px;
+      overflow: hidden;
     }
     
-    .user-role {
-      display: inline-block;
-      padding: 0.25rem 0.75rem;
-      border-radius: var(--radius-sm);
-      font-size: 0.75rem;
-      font-weight: 600;
-      text-transform: uppercase;
-    }
-    
-    .user-role.admin {
-      background: rgba(239, 68, 68, 0.2);
-      color: var(--accent-red);
-    }
-    
-    .user-role.analyst {
-      background: rgba(59, 130, 246, 0.2);
-      color: var(--accent-blue);
-    }
-    
-    .user-role.viewer {
-      background: rgba(16, 185, 129, 0.2);
-      color: var(--accent-green);
+    .progress-fill {
+      height: 100%;
+      background: var(--accent-cyan);
+      transition: width 0.3s ease;
     }
     
     .avatar-actions {
+      display: flex;
+      gap: 0.5rem;
       width: 100%;
     }
     
     .avatar-actions button {
-      width: 100%;
+      flex: 1;
+    }
+    
+    .avatar-hint {
+      color: var(--text-muted);
+      font-size: 0.75rem;
     }
     
     .info-card {
@@ -304,6 +306,7 @@ import { User, UpdateUserRequest } from '../../models/user.model';
       align-items: center;
       gap: 0.5rem;
       color: var(--text-primary);
+      margin: 0;
     }
     
     .card-header h3 i {
@@ -339,7 +342,7 @@ import { User, UpdateUserRequest } from '../../models/user.model';
       padding: 0.625rem;
       background: var(--secondary-bg);
       border: 1px solid var(--border-color);
-      border-radius: var(--radius-md);
+      border-radius: 8px;
       color: var(--text-primary);
       font-size: 0.875rem;
       transition: all 0.2s;
@@ -370,6 +373,65 @@ import { User, UpdateUserRequest } from '../../models/user.model';
         grid-column: 1;
       }
     }
+    
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.625rem 1.25rem;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+    }
+    
+    .btn-primary {
+      background: var(--accent-cyan);
+      color: white;
+    }
+    
+    .btn-primary:hover:not(:disabled) {
+      background: #0891b2;
+    }
+    
+    .btn-secondary {
+      background: var(--secondary-bg);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+    }
+    
+    .btn-secondary:hover:not(:disabled) {
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+    
+    .btn-outline {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid var(--border-color);
+    }
+    
+    .btn-outline:hover:not(:disabled) {
+      border-color: var(--accent-red);
+      color: var(--accent-red);
+    }
+    
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    
+    .fa-spin {
+      animation: fa-spin 1s linear infinite;
+    }
+    
+    @keyframes fa-spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
   `]
 })
 export class UserProfileComponent implements OnInit {
@@ -377,15 +439,16 @@ export class UserProfileComponent implements OnInit {
   defaultAvatar = '';
   updating = false;
   updatingPassword = false;
+  uploadProgress = 0;
   
   profileData: UpdateUserRequest = {};
   passwordData = {
-    currentPassword: '',
     newPassword: '',
     confirmPassword: ''
   };
   
   private apiUrl = 'http://localhost:8080/api/users';
+  private uploadUrl = 'http://localhost:8080/api/upload';
   
   constructor(
     private http: HttpClient,
@@ -414,43 +477,74 @@ export class UserProfileComponent implements OnInit {
     });
   }
   
-  triggerFileInput(): void {
-    // In a real app, you'd handle file upload to a server/cloud storage
-    // For now, we'll simulate with a URL input
-    const url = prompt('Enter image URL (or leave empty for default):');
-    if (url !== null) {
-      if (url === '') {
-        this.setDefaultAvatar();
-      } else {
-        this.updateAvatar(url);
+  getAvatarUrl(): string {
+    if (this.user?.avatarUrl) {
+      // If it's a full URL or starts with http, use as is
+      if (this.user.avatarUrl.startsWith('http')) {
+        return this.user.avatarUrl;
       }
+      // Otherwise, prepend the backend URL
+      return `http://localhost:8080${this.user.avatarUrl}`;
     }
+    return this.defaultAvatar;
+  }
+  
+  onImageError(event: any): void {
+    event.target.src = this.defaultAvatar;
   }
   
   onFileSelected(event: any): void {
     const file = event.target.files[0];
-    if (file) {
-      // In production, upload file to server and get URL
-      // For demo, we'll use a data URL or default
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        this.updateAvatar(e.target.result);
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+    
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size must be less than 5MB');
+      return;
     }
+    
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Only image files are allowed');
+      return;
+    }
+    
+    this.uploadFile(file);
   }
   
-  updateAvatar(url: string): void {
-    this.http.put(`${this.apiUrl}/me/avatar`, { avatarUrl: url }).subscribe({
+  uploadFile(file: File): void {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    this.uploadProgress = 0;
+    
+    // Simulate progress (since HttpClient doesn't easily expose upload progress without extra config)
+    const progressInterval = setInterval(() => {
+      if (this.uploadProgress < 90) {
+        this.uploadProgress += 10;
+      }
+    }, 100);
+    
+    this.http.post(`${this.uploadUrl}/avatar`, formData).subscribe({
       next: (response: any) => {
+        clearInterval(progressInterval);
+        this.uploadProgress = 100;
+        
         if (this.user) {
           this.user.avatarUrl = response.avatarUrl;
+          this.updateLocalUser();
         }
-        this.updateLocalUser();
+        
+        // Reset progress after a delay
+        setTimeout(() => {
+          this.uploadProgress = 0;
+        }, 1000);
       },
       error: (error) => {
-        console.error('Error updating avatar:', error);
-        alert('Failed to update avatar');
+        clearInterval(progressInterval);
+        this.uploadProgress = 0;
+        console.error('Error uploading avatar:', error);
+        alert('Failed to upload avatar: ' + (error.error?.message || 'Unknown error'));
       }
     });
   }
@@ -458,7 +552,15 @@ export class UserProfileComponent implements OnInit {
   setDefaultAvatar(): void {
     if (this.user) {
       const defaultUrl = `https://ui-avatars.com/api/?name=${this.user.username}&background=random`;
-      this.updateAvatar(defaultUrl);
+      this.http.put(`${this.apiUrl}/me/avatar`, { avatarUrl: defaultUrl }).subscribe({
+        next: (response: any) => {
+          this.user!.avatarUrl = response.avatarUrl;
+          this.updateLocalUser();
+        },
+        error: (error) => {
+          console.error('Error resetting avatar:', error);
+        }
+      });
     }
   }
   
@@ -494,7 +596,7 @@ export class UserProfileComponent implements OnInit {
     this.http.put(`${this.apiUrl}/me`, { password: this.passwordData.newPassword }).subscribe({
       next: () => {
         this.updatingPassword = false;
-        this.passwordData = { currentPassword: '', newPassword: '', confirmPassword: '' };
+        this.passwordData = { newPassword: '', confirmPassword: '' };
         alert('Password updated successfully!');
       },
       error: (error) => {

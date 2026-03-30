@@ -44,9 +44,16 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
         
+        <!-- Spring Mail for Email Verification and OTP -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-websocket</artifactId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+        
+        <!-- Spring Scheduling for Incident Simulation -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
         </dependency>
         
         <!-- MySQL Connector -->
@@ -123,4 +130,5 @@
             </plugin>
         </plugins>
     </build>
+      
 </project>

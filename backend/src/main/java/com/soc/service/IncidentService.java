@@ -18,12 +18,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -72,7 +70,6 @@ public class IncidentService {
         incident.setMalwareFamily(incidentDTO.getMalwareFamily());
         incident.setAffectedAssets(incidentDTO.getAffectedAssets());
         
-        // Set created by current user
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getPrincipal() instanceof UserDetailsImpl) {
             UserDetailsImpl userDetails = (UserDetailsImpl) auth.getPrincipal();
@@ -81,7 +78,6 @@ public class IncidentService {
             incident.setCreatedBy(user);
         }
         
-        // Set assigned to if provided
         if (incidentDTO.getAssignedToId() != null) {
             User assignedUser = userRepository.findById(incidentDTO.getAssignedToId())
                     .orElseThrow(() -> new RuntimeException("Assigned user not found"));
@@ -93,7 +89,7 @@ public class IncidentService {
         
         return IncidentDTO.fromEntity(savedIncident);
     }
-    
+
     @Transactional
     public IncidentDTO updateIncident(Long id, IncidentDTO incidentDTO) {
         Incident incident = incidentRepository.findById(id)
@@ -125,12 +121,13 @@ public class IncidentService {
         
         return IncidentDTO.fromEntity(updatedIncident);
     }
-    
+
     @Transactional
     public void deleteIncident(Long id) {
         Incident incident = incidentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Incident not found"));
         incidentRepository.delete(incident);
+        
         log.info("Deleted incident: {}", incident.getIncidentId());
     }
     
@@ -142,24 +139,20 @@ public class IncidentService {
         stats.setCriticalAlerts(alertRepository.countCriticalAlerts());
         stats.setResolvedToday(incidentRepository.countResolvedToday(LocalDate.now().atStartOfDay()));
         
-        // Threat Indicators - count from threat_intelligence table or calculate from incidents
         stats.setThreatIndicators(calculateThreatIndicators());
         
-        // Incidents by severity
         Map<String, Long> bySeverity = new HashMap<>();
         incidentRepository.countBySeverity().forEach(row -> {
             bySeverity.put(row[0].toString(), (Long) row[1]);
         });
         stats.setIncidentsBySeverity(bySeverity);
         
-        // Incidents by status
         Map<String, Long> byStatus = new HashMap<>();
         incidentRepository.countByStatus().forEach(row -> {
             byStatus.put(row[0].toString(), (Long) row[1]);
         });
         stats.setIncidentsByStatus(byStatus);
         
-        // Incidents by type
         Map<String, Long> byType = new HashMap<>();
         incidentRepository.countByType().forEach(row -> {
             if (row[0] != null) {
@@ -168,7 +161,6 @@ public class IncidentService {
         });
         stats.setIncidentsByType(byType);
         
-        // Incident trends (last 7 days)
         LocalDateTime weekAgo = LocalDateTime.now().minusDays(7);
         List<DashboardStats.IncidentTrend> trends = incidentRepository.countByDate(weekAgo).stream()
                 .map(row -> new DashboardStats.IncidentTrend(
@@ -178,14 +170,12 @@ public class IncidentService {
                 .collect(Collectors.toList());
         stats.setIncidentTrends(trends);
         
-        // Recent Activities
         stats.setRecentActivities(getRecentActivities());
         
         return stats;
     }
     
     private long calculateThreatIndicators() {
-        // Calculate threat indicators based on critical/high incidents and unacknowledged alerts
         long criticalIncidents = incidentRepository.findBySeverity(Incident.Severity.CRITICAL).size();
         long highIncidents = incidentRepository.findBySeverity(Incident.Severity.HIGH).size();
         long newAlerts = alertRepository.findNewAlerts().size();
@@ -196,7 +186,6 @@ public class IncidentService {
     private List<DashboardStats.RecentActivity> getRecentActivities() {
         List<DashboardStats.RecentActivity> activities = new ArrayList<>();
         
-        // Get recent incidents
         List<Incident> recentIncidents = incidentRepository.findAll().stream()
                 .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
                 .limit(5)
@@ -211,7 +200,6 @@ public class IncidentService {
             ));
         }
         
-        // Get recent alerts
         List<Alert> recentAlerts = alertRepository.findAll().stream()
                 .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
                 .limit(5)
@@ -226,7 +214,6 @@ public class IncidentService {
             ));
         }
         
-        // Sort by timestamp descending and limit to 10
         return activities.stream()
                 .sorted((a, b) -> b.getTimestamp().compareTo(a.getTimestamp()))
                 .limit(10)
@@ -235,6 +222,6 @@ public class IncidentService {
     
     private String generateIncidentId() {
         return "INC-" + LocalDate.now().getYear() + "-" + 
-               String.format("%03d", incidentRepository.count() + 1);
+               String.format("%04d", incidentRepository.count() + 1);
     }
 }

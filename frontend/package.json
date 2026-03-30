@@ -11,6 +11,7 @@
   "private": true,
   "dependencies": {
     "@angular/animations": "^17.0.0",
+    "@angular/cdk": "^17.0.0",
     "@angular/common": "^17.0.0",
     "@angular/compiler": "^17.0.0",
     "@angular/core": "^17.0.0",
@@ -18,20 +19,22 @@
     "@angular/platform-browser": "^17.0.0",
     "@angular/platform-browser-dynamic": "^17.0.0",
     "@angular/router": "^17.0.0",
-    "@angular/cdk": "^17.0.0",
+    "@stomp/stompjs": "^7.3.0",
+    "animate.css": "^4.1.1",
+    "aos": "^2.3.4",
     "chart.js": "^4.4.1",
     "ng2-charts": "^5.0.4",
     "rxjs": "~7.8.0",
+    "sockjs-client": "^1.6.1",
     "tslib": "^2.3.0",
-    "zone.js": "~0.14.0",
-    "aos": "^2.3.4",
-    "animate.css": "^4.1.1"
+    "zone.js": "~0.14.0"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^17.0.0",
     "@angular/cli": "^17.0.0",
     "@angular/compiler-cli": "^17.0.0",
     "@types/aos": "^3.0.7",
+    "@types/sockjs-client": "^1.5.4",
     "typescript": "~5.2.0"
   }
 }

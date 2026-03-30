@@ -3,12 +3,16 @@ package com.soc.repository;
 import com.soc.model.Alert;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
 public interface AlertRepository extends JpaRepository<Alert, Long> {
+    List<Alert> findByCreatedAtAfter(LocalDateTime since);
+    
     List<Alert> findByStatus(Alert.Status status);
     
     List<Alert> findBySeverity(Alert.Severity severity);
@@ -30,4 +34,7 @@ public interface AlertRepository extends JpaRepository<Alert, Long> {
     
     @Query("SELECT a.status, COUNT(a) FROM Alert a GROUP BY a.status")
     List<Object[]> countByStatus();
+    
+    @Query("SELECT COUNT(a) FROM Alert a WHERE a.createdAt > :since")
+    long countByCreatedAtAfter(@Param("since") LocalDateTime since);
 }

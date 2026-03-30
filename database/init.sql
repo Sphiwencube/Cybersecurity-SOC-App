@@ -105,7 +105,7 @@ CREATE TABLE IF NOT EXISTS ai_predictions (
 -- Insert default admin user (password: admin123)
 -- BCrypt hash for "admin123" - generated with bcrypt
 INSERT INTO users (username, email, password, role, first_name, last_name, avatar_url) 
-VALUES ('admin', 'admin@soc.local', '$2b$10$hmOUj2Phvr8wr51OnWFfR.K1sPNWYWO4HXnVovoQKdH.7htbqg5e6', 'ADMIN', 'System', 'Administrator', 'https://ui-avatars.com/api/?name=admin&background=random');
+VALUES ('admin', 'Sphiwencube9@outlook.com', '$2b$10$hmOUj2Phvr8wr51OnWFfR.K1sPNWYWO4HXnVovoQKdH.7htbqg5e6', 'ADMIN', 'System', 'Administrator', 'https://ui-avatars.com/api/?name=admin&background=random');
 
 -- Insert sample threat intelligence
 INSERT INTO threat_intelligence (indicator, indicator_type, threat_type, confidence_score, source, description) VALUES

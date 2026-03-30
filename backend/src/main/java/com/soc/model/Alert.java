@@ -21,6 +21,12 @@ public class Alert {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
+    @Column(name = "alert_type")
+    private String alertType;
+
+    @Column(name = "source_ip")
+    private String sourceIp;
+
     @Column(name = "alert_name", nullable = false)
     private String alertName;
     

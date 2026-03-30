@@ -7,6 +7,9 @@ import { DashboardStats, Incident } from '../models/incident.model';
   providedIn: 'root'
 })
 export class IncidentService {
+  checkForUpdates(): any {
+    throw new Error('Method not implemented.');
+  }
   private apiUrl = 'http://localhost:8080/api/incidents';
 
   constructor(private http: HttpClient) {}

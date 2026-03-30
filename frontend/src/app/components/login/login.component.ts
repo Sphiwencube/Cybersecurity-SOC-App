@@ -11,7 +11,6 @@ import { LoginRequest } from '../../models/user.model';
   imports: [CommonModule, FormsModule, RouterLink],
   template: `
     <div class="login-container">
-      <!-- Animated Background -->
       <div class="cyber-background">
         <div class="grid-overlay"></div>
         <div class="floating-particles">
@@ -22,7 +21,6 @@ import { LoginRequest } from '../../models/user.model';
         <div class="glow-orb orb-3"></div>
       </div>
       
-      <!-- Login Card -->
       <div class="login-card" data-aos="zoom-in" data-aos-duration="800">
         <div class="logo-section">
           <div class="logo-icon">
@@ -68,7 +66,11 @@ import { LoginRequest } from '../../models/user.model';
             </div>
           </div>
           
-          <div class="error-message" *ngIf="errorMessage" [@shake]>
+          <div class="forgot-password-link">
+            <a routerLink="/forgot-password">Forgot Password?</a>
+          </div>
+          
+          <div class="error-message" *ngIf="errorMessage">
             <i class="fas fa-exclamation-circle"></i>
             {{ errorMessage }}
           </div>
@@ -88,11 +90,9 @@ import { LoginRequest } from '../../models/user.model';
           <p class="register-prompt">
             Don't have an account? <a routerLink="/register" class="register-link">Create Account</a>
           </p>
-          <p class="default-creds">Default credentials: <span class="mono">admin / admin123</span></p>
         </div>
       </div>
       
-      <!-- Decorative Elements -->
       <div class="decoration-line line-1"></div>
       <div class="decoration-line line-2"></div>
       <div class="decoration-line line-3"></div>
@@ -108,14 +108,11 @@ import { LoginRequest } from '../../models/user.model';
       overflow: hidden;
       background: var(--primary-bg);
     }
-    
-    /* Cyber Background */
     .cyber-background {
       position: absolute;
       inset: 0;
       overflow: hidden;
     }
-    
     .grid-overlay {
       position: absolute;
       inset: 0;
@@ -125,17 +122,14 @@ import { LoginRequest } from '../../models/user.model';
       background-size: 50px 50px;
       animation: gridMove 20s linear infinite;
     }
-    
     @keyframes gridMove {
       0% { transform: perspective(500px) rotateX(60deg) translateY(0); }
       100% { transform: perspective(500px) rotateX(60deg) translateY(50px); }
     }
-    
     .floating-particles {
       position: absolute;
       inset: 0;
     }
-    
     .particle {
       position: absolute;
       width: 4px;
@@ -145,7 +139,6 @@ import { LoginRequest } from '../../models/user.model';
       opacity: 0.5;
       animation: float 15s infinite;
     }
-    
     .particle:nth-child(1) { left: 10%; animation-delay: 0s; }
     .particle:nth-child(2) { left: 20%; animation-delay: 1s; }
     .particle:nth-child(3) { left: 30%; animation-delay: 2s; }
@@ -156,24 +149,18 @@ import { LoginRequest } from '../../models/user.model';
     .particle:nth-child(8) { left: 80%; animation-delay: 7s; }
     .particle:nth-child(9) { left: 90%; animation-delay: 8s; }
     .particle:nth-child(10) { left: 95%; animation-delay: 9s; }
-    
     @keyframes float {
       0%, 100% {
         transform: translateY(100vh) scale(0);
         opacity: 0;
       }
-      10% {
-        opacity: 0.5;
-      }
-      90% {
-        opacity: 0.5;
-      }
+      10% { opacity: 0.5; }
+      90% { opacity: 0.5; }
       100% {
         transform: translateY(-100vh) scale(1);
         opacity: 0;
       }
     }
-    
     .glow-orb {
       position: absolute;
       border-radius: 50%;
@@ -181,7 +168,6 @@ import { LoginRequest } from '../../models/user.model';
       opacity: 0.3;
       animation: orbFloat 10s ease-in-out infinite;
     }
-    
     .orb-1 {
       width: 400px;
       height: 400px;
@@ -189,7 +175,6 @@ import { LoginRequest } from '../../models/user.model';
       top: -100px;
       left: -100px;
     }
-    
     .orb-2 {
       width: 300px;
       height: 300px;
@@ -198,7 +183,6 @@ import { LoginRequest } from '../../models/user.model';
       right: -50px;
       animation-delay: -3s;
     }
-    
     .orb-3 {
       width: 200px;
       height: 200px;
@@ -207,14 +191,11 @@ import { LoginRequest } from '../../models/user.model';
       left: 50%;
       animation-delay: -6s;
     }
-    
     @keyframes orbFloat {
       0%, 100% { transform: translate(0, 0) scale(1); }
       33% { transform: translate(30px, -30px) scale(1.1); }
       66% { transform: translate(-20px, 20px) scale(0.9); }
     }
-    
-    /* Login Card */
     .login-card {
       position: relative;
       z-index: 10;
@@ -230,17 +211,14 @@ import { LoginRequest } from '../../models/user.model';
         0 0 0 1px rgba(0, 212, 255, 0.1);
       animation: cardGlow 3s ease-in-out infinite;
     }
-    
     @keyframes cardGlow {
       0%, 100% { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(0, 212, 255, 0.1); }
       50% { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 30px rgba(0, 212, 255, 0.2); }
     }
-    
     .logo-section {
       text-align: center;
       margin-bottom: 2rem;
     }
-    
     .logo-icon {
       width: 80px;
       height: 80px;
@@ -254,39 +232,31 @@ import { LoginRequest } from '../../models/user.model';
       color: white;
       animation: iconPulse 2s ease-in-out infinite;
     }
-    
     @keyframes iconPulse {
       0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(0, 212, 255, 0.3); }
       50% { transform: scale(1.05); box-shadow: 0 0 40px rgba(0, 212, 255, 0.5); }
     }
-    
     .logo-title {
       font-size: 2rem;
       font-weight: 700;
       color: var(--text-primary);
       margin-bottom: 0.25rem;
     }
-    
     .highlight {
       color: var(--accent-cyan);
     }
-    
     .logo-subtitle {
       color: var(--text-secondary);
       font-size: 0.875rem;
       text-transform: uppercase;
       letter-spacing: 0.1em;
     }
-    
-    /* Form */
     .login-form {
       margin-bottom: 1.5rem;
     }
-    
     .form-group {
       margin-bottom: 1.25rem;
     }
-    
     .form-label {
       display: flex;
       align-items: center;
@@ -296,11 +266,9 @@ import { LoginRequest } from '../../models/user.model';
       font-weight: 500;
       color: var(--text-secondary);
     }
-    
     .form-label i {
       color: var(--accent-cyan);
     }
-    
     .form-input {
       width: 100%;
       padding: 0.875rem 1rem;
@@ -311,22 +279,17 @@ import { LoginRequest } from '../../models/user.model';
       font-size: 0.9375rem;
       transition: all 0.2s ease;
     }
-    
     .form-input:focus {
       outline: none;
       border-color: var(--accent-cyan);
       box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
     }
-    
     .form-input.error {
       border-color: var(--accent-red);
-      animation: shake 0.5s ease;
     }
-    
     .password-input {
       position: relative;
     }
-    
     .toggle-password {
       position: absolute;
       right: 1rem;
@@ -338,11 +301,21 @@ import { LoginRequest } from '../../models/user.model';
       cursor: pointer;
       transition: color 0.2s;
     }
-    
     .toggle-password:hover {
       color: var(--accent-cyan);
     }
-    
+    .forgot-password-link {
+      text-align: right;
+      margin-bottom: 1rem;
+    }
+    .forgot-password-link a {
+      font-size: 0.875rem;
+      color: var(--accent-cyan);
+      text-decoration: none;
+    }
+    .forgot-password-link a:hover {
+      text-decoration: underline;
+    }
     .error-message {
       display: flex;
       align-items: center;
@@ -355,100 +328,70 @@ import { LoginRequest } from '../../models/user.model';
       font-size: 0.875rem;
       margin-bottom: 1rem;
     }
-    
     .btn-login {
       width: 100%;
       padding: 1rem;
       font-size: 1rem;
       font-weight: 600;
     }
-    
     .loading-spinner {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 0.75rem;
     }
-    
     .login-footer {
       text-align: center;
       padding-top: 1.5rem;
       border-top: 1px solid var(--border-color);
     }
-    
-    .login-footer p {
+    .register-prompt {
+      margin-bottom: 0.75rem;
       font-size: 0.8125rem;
       color: var(--text-muted);
     }
-    
-    .login-footer .mono {
-      color: var(--accent-cyan);
-      background: var(--secondary-bg);
-      padding: 0.125rem 0.5rem;
-      border-radius: var(--radius-sm);
-    }
-    
-    .register-prompt {
-      margin-bottom: 0.75rem;
-    }
-    
     .register-link {
       color: var(--accent-cyan);
       font-weight: 600;
       text-decoration: none;
     }
-    
     .register-link:hover {
       text-decoration: underline;
     }
-    
-    .default-creds {
-      font-size: 0.75rem;
-      opacity: 0.8;
-    }
-    
-    /* Decoration Lines */
     .decoration-line {
       position: absolute;
       height: 1px;
       background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
       opacity: 0.3;
     }
-    
     .line-1 {
       width: 200px;
       top: 20%;
       left: 10%;
       animation: lineMove 8s linear infinite;
     }
-    
     .line-2 {
       width: 300px;
       top: 60%;
       right: 15%;
       animation: lineMove 10s linear infinite reverse;
     }
-    
     .line-3 {
       width: 150px;
       bottom: 25%;
       left: 20%;
       animation: lineMove 6s linear infinite;
     }
-    
     @keyframes lineMove {
       0% { transform: translateX(-100%); opacity: 0; }
       50% { opacity: 0.3; }
       100% { transform: translateX(100vw); opacity: 0; }
     }
-    
-    /* Responsive */
     @media (max-width: 480px) {
       .login-card {
         margin: 1rem;
         padding: 2rem;
       }
-      
       .logo-title {
         font-size: 1.5rem;
       }

@@ -11,7 +11,6 @@ import { RegisterRequest } from '../../models/user.model';
   imports: [CommonModule, FormsModule, RouterLink],
   template: `
     <div class="register-container">
-      <!-- Animated Background -->
       <div class="cyber-background">
         <div class="grid-overlay"></div>
         <div class="floating-particles">
@@ -22,8 +21,35 @@ import { RegisterRequest } from '../../models/user.model';
         <div class="glow-orb orb-3"></div>
       </div>
       
-      <!-- Register Card -->
-      <div class="register-card" data-aos="zoom-in" data-aos-duration="800">
+      <!-- Success Message -->
+      <div class="register-card" *ngIf="registrationSuccess" data-aos="zoom-in">
+        <div class="logo-section">
+          <div class="logo-icon success">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <h1 class="logo-title">Registration<span class="highlight">Successful!</span></h1>
+          <p class="logo-subtitle">Your account has been created</p>
+        </div>
+        
+        <div class="success-content">
+          <div class="success-icon">
+            <i class="fas fa-user-check"></i>
+          </div>
+          <p class="success-text">
+            Welcome to SOC Guard, <strong>{{ registeredUsername }}</strong>!
+          </p>
+          <p class="success-subtext">
+            Your account is ready to use. You can now log in with your credentials.
+          </p>
+          
+          <button class="btn btn-primary" (click)="goToLogin()">
+            <i class="fas fa-sign-in-alt"></i> Go to Login
+          </button>
+        </div>
+      </div>
+      
+      <!-- Registration Form -->
+      <div class="register-card" *ngIf="!registrationSuccess" data-aos="zoom-in" data-aos-duration="800">
         <div class="logo-section">
           <div class="logo-icon">
             <i class="fas fa-user-plus"></i>
@@ -33,7 +59,6 @@ import { RegisterRequest } from '../../models/user.model';
         </div>
         
         <form (ngSubmit)="onSubmit()" class="register-form">
-          <!-- Name Row -->
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">
@@ -63,7 +88,6 @@ import { RegisterRequest } from '../../models/user.model';
             </div>
           </div>
           
-          <!-- Username -->
           <div class="form-group">
             <label class="form-label">
               <i class="fas fa-id-card"></i> Username
@@ -79,7 +103,6 @@ import { RegisterRequest } from '../../models/user.model';
             />
           </div>
           
-          <!-- Email -->
           <div class="form-group">
             <label class="form-label">
               <i class="fas fa-envelope"></i> Email
@@ -91,11 +114,9 @@ import { RegisterRequest } from '../../models/user.model';
               name="email"
               placeholder="Enter your email"
               required
-              email
             />
           </div>
           
-          <!-- Role Selection -->
           <div class="form-group">
             <label class="form-label">
               <i class="fas fa-user-tag"></i> Select Role
@@ -112,7 +133,7 @@ import { RegisterRequest } from '../../models/user.model';
                 <div class="role-content">
                   <i class="fas fa-eye"></i>
                   <span class="role-name">Viewer</span>
-                  <span class="role-desc">Read-only access to dashboards and reports</span>
+                  <span class="role-desc">Read-only access</span>
                 </div>
               </label>
               <label class="role-option" [class.selected]="registerData.role === 'ANALYST'">
@@ -126,17 +147,12 @@ import { RegisterRequest } from '../../models/user.model';
                 <div class="role-content">
                   <i class="fas fa-search"></i>
                   <span class="role-name">Analyst</span>
-                  <span class="role-desc">Can create and manage incidents</span>
+                  <span class="role-desc">Can manage incidents</span>
                 </div>
               </label>
             </div>
-            <p class="role-note">
-              <i class="fas fa-info-circle"></i>
-              Admin role can only be assigned by existing administrators
-            </p>
           </div>
           
-          <!-- Password -->
           <div class="form-group">
             <label class="form-label">
               <i class="fas fa-lock"></i> Password
@@ -157,7 +173,6 @@ import { RegisterRequest } from '../../models/user.model';
             </div>
           </div>
           
-          <!-- Confirm Password -->
           <div class="form-group">
             <label class="form-label">
               <i class="fas fa-lock"></i> Confirm Password
@@ -172,19 +187,11 @@ import { RegisterRequest } from '../../models/user.model';
             />
           </div>
           
-          <!-- Error Message -->
-          <div class="error-message" *ngIf="errorMessage" [@shake]>
+          <div class="error-message" *ngIf="errorMessage">
             <i class="fas fa-exclamation-circle"></i>
             {{ errorMessage }}
           </div>
           
-          <!-- Success Message -->
-          <div class="success-message" *ngIf="successMessage">
-            <i class="fas fa-check-circle"></i>
-            {{ successMessage }}
-          </div>
-          
-          <!-- Submit Button -->
           <button type="submit" class="btn btn-primary btn-register" [disabled]="isLoading">
             <span *ngIf="!isLoading">
               <i class="fas fa-user-plus"></i> Create Account
@@ -196,16 +203,10 @@ import { RegisterRequest } from '../../models/user.model';
           </button>
         </form>
         
-        <!-- Login Link -->
         <div class="register-footer">
           <p>Already have an account? <a routerLink="/login" class="login-link">Sign In</a></p>
         </div>
       </div>
-      
-      <!-- Decorative Elements -->
-      <div class="decoration-line line-1"></div>
-      <div class="decoration-line line-2"></div>
-      <div class="decoration-line line-3"></div>
     </div>
   `,
   styles: [`
@@ -219,14 +220,11 @@ import { RegisterRequest } from '../../models/user.model';
       background: var(--primary-bg);
       padding: 2rem 1rem;
     }
-    
-    /* Cyber Background - Same as login */
     .cyber-background {
       position: absolute;
       inset: 0;
       overflow: hidden;
     }
-    
     .grid-overlay {
       position: absolute;
       inset: 0;
@@ -236,17 +234,14 @@ import { RegisterRequest } from '../../models/user.model';
       background-size: 50px 50px;
       animation: gridMove 20s linear infinite;
     }
-    
     @keyframes gridMove {
       0% { transform: perspective(500px) rotateX(60deg) translateY(0); }
       100% { transform: perspective(500px) rotateX(60deg) translateY(50px); }
     }
-    
     .floating-particles {
       position: absolute;
       inset: 0;
     }
-    
     .particle {
       position: absolute;
       width: 4px;
@@ -256,7 +251,6 @@ import { RegisterRequest } from '../../models/user.model';
       opacity: 0.5;
       animation: float 15s infinite;
     }
-    
     .particle:nth-child(1) { left: 10%; animation-delay: 0s; }
     .particle:nth-child(2) { left: 20%; animation-delay: 1s; }
     .particle:nth-child(3) { left: 30%; animation-delay: 2s; }
@@ -267,24 +261,18 @@ import { RegisterRequest } from '../../models/user.model';
     .particle:nth-child(8) { left: 80%; animation-delay: 7s; }
     .particle:nth-child(9) { left: 90%; animation-delay: 8s; }
     .particle:nth-child(10) { left: 95%; animation-delay: 9s; }
-    
     @keyframes float {
       0%, 100% {
         transform: translateY(100vh) scale(0);
         opacity: 0;
       }
-      10% {
-        opacity: 0.5;
-      }
-      90% {
-        opacity: 0.5;
-      }
+      10% { opacity: 0.5; }
+      90% { opacity: 0.5; }
       100% {
         transform: translateY(-100vh) scale(1);
         opacity: 0;
       }
     }
-    
     .glow-orb {
       position: absolute;
       border-radius: 50%;
@@ -292,7 +280,6 @@ import { RegisterRequest } from '../../models/user.model';
       opacity: 0.3;
       animation: orbFloat 10s ease-in-out infinite;
     }
-    
     .orb-1 {
       width: 400px;
       height: 400px;
@@ -300,7 +287,6 @@ import { RegisterRequest } from '../../models/user.model';
       top: -100px;
       left: -100px;
     }
-    
     .orb-2 {
       width: 300px;
       height: 300px;
@@ -309,7 +295,6 @@ import { RegisterRequest } from '../../models/user.model';
       right: -50px;
       animation-delay: -3s;
     }
-    
     .orb-3 {
       width: 200px;
       height: 200px;
@@ -318,14 +303,11 @@ import { RegisterRequest } from '../../models/user.model';
       left: 50%;
       animation-delay: -6s;
     }
-    
     @keyframes orbFloat {
       0%, 100% { transform: translate(0, 0) scale(1); }
       33% { transform: translate(30px, -30px) scale(1.1); }
       66% { transform: translate(-20px, 20px) scale(0.9); }
     }
-    
-    /* Register Card */
     .register-card {
       position: relative;
       z-index: 10;
@@ -343,17 +325,14 @@ import { RegisterRequest } from '../../models/user.model';
         0 0 0 1px rgba(0, 212, 255, 0.1);
       animation: cardGlow 3s ease-in-out infinite;
     }
-    
     @keyframes cardGlow {
       0%, 100% { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(0, 212, 255, 0.1); }
       50% { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 30px rgba(0, 212, 255, 0.2); }
     }
-    
     .logo-section {
       text-align: center;
       margin-bottom: 1.5rem;
     }
-    
     .logo-icon {
       width: 70px;
       height: 70px;
@@ -367,49 +346,79 @@ import { RegisterRequest } from '../../models/user.model';
       color: white;
       animation: iconPulse 2s ease-in-out infinite;
     }
-    
+    .logo-icon.success {
+      background: linear-gradient(135deg, #10b981, #059669);
+      animation: iconPulseSuccess 2s ease-in-out infinite;
+    }
     @keyframes iconPulse {
       0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(0, 212, 255, 0.3); }
       50% { transform: scale(1.05); box-shadow: 0 0 40px rgba(0, 212, 255, 0.5); }
     }
-    
+    @keyframes iconPulseSuccess {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(16, 185, 129, 0.3); }
+      50% { transform: scale(1.05); box-shadow: 0 0 40px rgba(16, 185, 129, 0.5); }
+    }
     .logo-title {
       font-size: 1.75rem;
       font-weight: 700;
       color: var(--text-primary);
       margin-bottom: 0.25rem;
     }
-    
     .highlight {
       color: var(--accent-cyan);
     }
-    
     .logo-subtitle {
       color: var(--text-secondary);
       font-size: 0.875rem;
     }
-    
-    /* Form */
+    /* Success content styles */
+    .success-content {
+      text-align: center;
+      padding: 1.5rem 0;
+    }
+    .success-icon {
+      font-size: 4rem;
+      color: var(--accent-green, #10b981);
+      margin-bottom: 1.5rem;
+      animation: floatIcon 3s ease-in-out infinite;
+    }
+    @keyframes floatIcon {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    .success-text {
+      font-size: 1.1rem;
+      color: var(--text-primary);
+      margin-bottom: 1rem;
+    }
+    .success-text strong {
+      color: var(--accent-cyan);
+    }
+    .success-subtext {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      margin-bottom: 2rem;
+      line-height: 1.6;
+    }
+    .success-content .btn-primary {
+      margin-top: 1rem;
+    }
     .register-form {
       margin-bottom: 1rem;
     }
-    
     .form-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 1rem;
     }
-    
     @media (max-width: 480px) {
       .form-row {
         grid-template-columns: 1fr;
       }
     }
-    
     .form-group {
       margin-bottom: 1rem;
     }
-    
     .form-label {
       display: flex;
       align-items: center;
@@ -419,12 +428,10 @@ import { RegisterRequest } from '../../models/user.model';
       font-weight: 500;
       color: var(--text-secondary);
     }
-    
     .form-label i {
       color: var(--accent-cyan);
       font-size: 0.875rem;
     }
-    
     .form-input {
       width: 100%;
       padding: 0.75rem 1rem;
@@ -435,17 +442,14 @@ import { RegisterRequest } from '../../models/user.model';
       font-size: 0.875rem;
       transition: all 0.2s ease;
     }
-    
     .form-input:focus {
       outline: none;
       border-color: var(--accent-cyan);
       box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
     }
-    
     .password-input {
       position: relative;
     }
-    
     .toggle-password {
       position: absolute;
       right: 0.875rem;
@@ -457,34 +461,27 @@ import { RegisterRequest } from '../../models/user.model';
       cursor: pointer;
       transition: color 0.2s;
     }
-    
     .toggle-password:hover {
       color: var(--accent-cyan);
     }
-    
-    /* Role Selection */
     .role-selection {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 0.75rem;
     }
-    
     @media (max-width: 480px) {
       .role-selection {
         grid-template-columns: 1fr;
       }
     }
-    
     .role-option {
       position: relative;
       cursor: pointer;
     }
-    
     .role-option input {
       position: absolute;
       opacity: 0;
     }
-    
     .role-content {
       display: flex;
       flex-direction: column;
@@ -497,46 +494,26 @@ import { RegisterRequest } from '../../models/user.model';
       transition: all 0.2s ease;
       text-align: center;
     }
-    
     .role-option:hover .role-content {
       border-color: var(--border-light);
     }
-    
     .role-option.selected .role-content {
       border-color: var(--accent-cyan);
       background: rgba(0, 212, 255, 0.1);
     }
-    
     .role-content i {
       font-size: 1.5rem;
       color: var(--accent-cyan);
     }
-    
     .role-name {
       font-weight: 600;
       color: var(--text-primary);
       font-size: 0.875rem;
     }
-    
     .role-desc {
       font-size: 0.6875rem;
       color: var(--text-muted);
     }
-    
-    .role-note {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-top: 0.75rem;
-      font-size: 0.75rem;
-      color: var(--text-muted);
-    }
-    
-    .role-note i {
-      color: var(--accent-yellow);
-    }
-    
-    /* Messages */
     .error-message {
       display: flex;
       align-items: center;
@@ -549,94 +526,42 @@ import { RegisterRequest } from '../../models/user.model';
       font-size: 0.875rem;
       margin-bottom: 1rem;
     }
-    
-    .success-message {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.75rem 1rem;
-      background: rgba(16, 185, 129, 0.1);
-      border: 1px solid var(--accent-green);
-      border-radius: var(--radius-md);
-      color: var(--accent-green);
-      font-size: 0.875rem;
-      margin-bottom: 1rem;
-    }
-    
-    /* Submit Button */
     .btn-register {
       width: 100%;
       padding: 0.875rem;
       font-size: 0.9375rem;
       font-weight: 600;
     }
-    
     .loading-spinner {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 0.75rem;
     }
-    
-    /* Footer */
     .register-footer {
       text-align: center;
       padding-top: 1rem;
       border-top: 1px solid var(--border-color);
     }
-    
     .register-footer p {
       font-size: 0.875rem;
       color: var(--text-secondary);
     }
-    
     .login-link {
       color: var(--accent-cyan);
       font-weight: 600;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
     }
-    
     .login-link:hover {
       text-decoration: underline;
-    }
-    
-    /* Decoration Lines */
-    .decoration-line {
-      position: absolute;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
-      opacity: 0.3;
-    }
-    
-    .line-1 {
-      width: 200px;
-      top: 20%;
-      left: 10%;
-      animation: lineMove 8s linear infinite;
-    }
-    
-    .line-2 {
-      width: 300px;
-      top: 60%;
-      right: 15%;
-      animation: lineMove 10s linear infinite reverse;
-    }
-    
-    .line-3 {
-      width: 150px;
-      bottom: 25%;
-      left: 20%;
-      animation: lineMove 6s linear infinite;
-    }
-    
-    @keyframes lineMove {
-      0% { transform: translateX(-100%); opacity: 0; }
-      50% { opacity: 0.3; }
-      100% { transform: translateX(100vw); opacity: 0; }
     }
   `]
 })
 export class RegisterComponent {
-  registerData: RegisterRequest = {
+  registerData: RegisterRequest & { confirmPassword?: string } = {
     username: '',
     email: '',
     password: '',
@@ -649,7 +574,8 @@ export class RegisterComponent {
   showPassword = false;
   isLoading = false;
   errorMessage = '';
-  successMessage = '';
+  registrationSuccess = false;
+  registeredUsername = '';
   
   constructor(
     private authService: AuthService,
@@ -657,11 +583,8 @@ export class RegisterComponent {
   ) {}
   
   onSubmit(): void {
-    // Reset messages
     this.errorMessage = '';
-    this.successMessage = '';
     
-    // Validation
     if (!this.registerData.username || !this.registerData.email || 
         !this.registerData.password || !this.registerData.firstName || 
         !this.registerData.lastName) {
@@ -691,20 +614,22 @@ export class RegisterComponent {
     
     this.isLoading = true;
     
-    this.authService.register(this.registerData).subscribe({
+    const { confirmPassword, ...registerRequest } = this.registerData;
+    
+    this.authService.register(registerRequest).subscribe({
       next: (response: any) => {
         this.isLoading = false;
-        this.successMessage = 'Account created successfully! Redirecting to login...';
-        
-        // Redirect to login after 2 seconds
-        setTimeout(() => {
-          this.router.navigate(['/login']);
-        }, 2000);
+        this.registeredUsername = this.registerData.username;
+        this.registrationSuccess = true;
       },
-      error: (error: { error: { message: string; }; }) => {
+      error: (error) => {
         this.isLoading = false;
         this.errorMessage = error.error?.message || 'Registration failed. Please try again.';
       }
     });
+  }
+  
+  goToLogin(): void {
+    this.router.navigate(['/login']);
   }
 }
