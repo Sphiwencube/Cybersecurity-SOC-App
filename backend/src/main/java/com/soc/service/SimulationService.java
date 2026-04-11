@@ -116,7 +116,6 @@ public class SimulationService {
                 .replace("%s", random.nextBoolean() ? user : malware);
         
         Incident incident = new Incident();
-        incident.setIncidentId(generateIncidentId());
         incident.setTitle(title);
         incident.setDescription(description);
         incident.setSeverity(severity);
@@ -139,7 +138,17 @@ public class SimulationService {
             }
         }
         
+        // Save first to generate ID
         Incident savedIncident = incidentRepository.save(incident);
+        
+        // Generate business incidentId from database ID
+        String incidentId = "INC-" + LocalDateTime.now().getYear() + "-" +
+                String.format("%05d", savedIncident.getId());
+        savedIncident.setIncidentId(incidentId);
+        
+        // Save again with incidentId
+        incidentRepository.save(savedIncident);
+        
         log.info("🚨 SIMULATED INCIDENT CREATED: {} - {} [{}]", 
                 savedIncident.getIncidentId(), 
                 savedIncident.getTitle(),
@@ -154,9 +163,6 @@ public class SimulationService {
             "Anomalous Process Execution", "Registry Modification", "Service Installation"
         };
         
-        //String alertType = alertTypes[random.nextInt(alertTypes.length)];
-        //String sourceIp = IP_ADDRESSES[random.nextInt(IP_ADDRESSES.length)];
-
         Alert alert = new Alert();
         alert.setAlertName(alertNames[random.nextInt(alertNames.length)]);
         alert.setAlertType(alertTypes[random.nextInt(alertTypes.length)]);
@@ -164,17 +170,12 @@ public class SimulationService {
         alert.setSeverity(Alert.Severity.values()[random.nextInt(Alert.Severity.values().length)]);
         alert.setStatus(Alert.Status.NEW);
         alert.setDescription("Automated security alert triggered by " + alert.getAlertType() + 
-        " system. Source: " + alert.getSourceIp());
+            " system. Source: " + alert.getSourceIp());
         
         Alert savedAlert = alertRepository.save(alert);
         log.debug("🔔 SIMULATED ALERT CREATED: {} [{}]", 
                 savedAlert.getAlertName(), 
                 savedAlert.getSeverity());
-    }
-    
-    private String generateIncidentId() {
-        return "INC-" + LocalDateTime.now().getYear() + "-" + 
-               String.format("%04d", incidentRepository.count() + 1);
     }
     
     public void triggerManualIncident() {
