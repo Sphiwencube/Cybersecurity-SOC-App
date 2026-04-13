@@ -9,6 +9,7 @@ import com.soc.repository.AlertRepository;
 import com.soc.repository.IncidentRepository;
 import com.soc.repository.UserRepository;
 import com.soc.security.UserDetailsImpl;
+import com.soc.util.IncidentIdGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -37,6 +38,9 @@ public class IncidentService {
     @Autowired
     private AlertRepository alertRepository;
     
+    @Autowired
+    private IncidentIdGenerator incidentIdGenerator;
+
     public List<IncidentDTO> getAllIncidents() {
         return incidentRepository.findAll().stream()
                 .map(IncidentDTO::fromEntity)
@@ -220,8 +224,12 @@ public class IncidentService {
                 .collect(Collectors.toList());
     }
     
-    private String generateIncidentId() {
+    /*private String generateIncidentId() {
         return "INC-" + LocalDate.now().getYear() + "-" + 
                String.format("%04d", incidentRepository.count() + 1);
+    }*/
+
+    private String generateIncidentId() {
+        return incidentIdGenerator.generateNextId();
     }
 }

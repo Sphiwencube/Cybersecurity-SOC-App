@@ -6,6 +6,7 @@ import com.soc.model.User;
 import com.soc.repository.AlertRepository;
 import com.soc.repository.IncidentRepository;
 import com.soc.repository.UserRepository;
+import com.soc.util.IncidentIdGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -29,6 +30,9 @@ public class SimulationService {
     
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private IncidentIdGenerator incidentIdGenerator;
 
     private final Random random = ThreadLocalRandom.current();
     
@@ -100,7 +104,7 @@ public class SimulationService {
         }
     }
     
-    private void createSimulatedIncident() {
+    /*private void createSimulatedIncident() {
         String[] template = INCIDENT_TEMPLATES[random.nextInt(INCIDENT_TEMPLATES.length)];
         String title = template[0];
         String descriptionTemplate = template[1];
@@ -116,6 +120,7 @@ public class SimulationService {
                 .replace("%s", random.nextBoolean() ? user : malware);
         
         Incident incident = new Incident();
+        incident.setIncidentId("TEMP-" + System.currentTimeMillis());
         incident.setTitle(title);
         incident.setDescription(description);
         incident.setSeverity(severity);
@@ -148,6 +153,55 @@ public class SimulationService {
         
         // Save again with incidentId
         incidentRepository.save(savedIncident);
+        
+        log.info("🚨 SIMULATED INCIDENT CREATED: {} - {} [{}]", 
+                savedIncident.getIncidentId(), 
+                savedIncident.getTitle(),
+                savedIncident.getSeverity());
+    }*/
+    
+        private void createSimulatedIncident() {
+        String[] template = INCIDENT_TEMPLATES[random.nextInt(INCIDENT_TEMPLATES.length)];
+        String title = template[0];
+        String descriptionTemplate = template[1];
+        Incident.Severity severity = Incident.Severity.valueOf(template[2]);
+        
+        String ip = IP_ADDRESSES[random.nextInt(IP_ADDRESSES.length)];
+        String workstation = WORKSTATIONS[random.nextInt(WORKSTATIONS.length)];
+        String user = USERNAMES[random.nextInt(USERNAMES.length)];
+        String malware = MALWARE_FAMILIES[random.nextInt(MALWARE_FAMILIES.length)];
+        
+        String description = descriptionTemplate
+                .replace("%s", random.nextBoolean() ? ip : workstation)
+                .replace("%s", random.nextBoolean() ? user : malware);
+        
+        Incident incident = new Incident();
+        // Use the generator to create sequential ID like INC-2026-0001
+        incident.setIncidentId(incidentIdGenerator.generateNextId());
+        incident.setTitle(title);
+        incident.setDescription(description);
+        incident.setSeverity(severity);
+        incident.setStatus(Incident.Status.OPEN);
+        incident.setIncidentType(random.nextBoolean() ? "Security Incident" : "Malware Detection");
+        incident.setSourceIp(ip);
+        incident.setDestinationIp(random.nextBoolean() ? "10.0.0." + random.nextInt(255) : null);
+        incident.setAttackVector(ATTACK_VECTORS[random.nextInt(ATTACK_VECTORS.length)]);
+        incident.setMalwareFamily(random.nextBoolean() ? malware : null);
+        incident.setAffectedAssets(workstation);
+        
+        List<User> systemUsers = userRepository.findAll();
+        if (!systemUsers.isEmpty()) {
+            User creator = systemUsers.get(random.nextInt(systemUsers.size()));
+            incident.setCreatedBy(creator);
+            
+            if (random.nextDouble() > 0.5) {
+                User assignee = systemUsers.get(random.nextInt(systemUsers.size()));
+                incident.setAssignedTo(assignee);
+            }
+        }
+        
+        // Save once with the proper incidentId
+        Incident savedIncident = incidentRepository.save(incident);
         
         log.info("🚨 SIMULATED INCIDENT CREATED: {} - {} [{}]", 
                 savedIncident.getIncidentId(), 

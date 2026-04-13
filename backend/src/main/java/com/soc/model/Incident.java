@@ -6,8 +6,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+//import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDateTime;
+
 
 @Entity
 @Table(name = "incidents")
@@ -19,7 +21,8 @@ public class Incident {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(name = "incident_id", unique = true, nullable = false)
+    @Column(name = "incident_id", unique = true, nullable = false, updatable = false, length = 50)
+    //@UuidGenerator
     private String incidentId;
     
     @Column(nullable = false)
@@ -67,9 +70,20 @@ public class Incident {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
     
     @Column(name = "resolved_at")
     private LocalDateTime resolvedAt;
+
+
+    @PrePersist
+    public void prePersist() {
+        if (this.incidentId == null) {
+            // Fallback: generate a timestamp-based ID if not set by service
+            this.incidentId = "INC-" + java.time.Year.now().getValue() + "-" + 
+                             String.format("%04d", (int)(Math.random() * 9999) + 1);
+        }
+    }
     
     public enum Severity {
         CRITICAL, HIGH, MEDIUM, LOW, INFO

@@ -21,6 +21,8 @@ public class DashboardStats {
     private Map<String, Long> incidentsByType;
     private List<IncidentTrend> incidentTrends;
     private List<RecentActivity> recentActivities;
+
+    private PredictiveMetrics predictiveMetrics;
     
     @Data
     @AllArgsConstructor
@@ -37,4 +39,16 @@ public class DashboardStats {
         private String timestamp;
         private String severity;
     }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class PredictiveMetrics {
+        private double threatPredictionAccuracy;
+        private double falsePositiveRate;
+        private double modelConfidence;
+        private double avgResolutionTime;
+        private double incidentGrowthRate;
+    }
 }
+
