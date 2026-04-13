@@ -51,4 +51,3 @@ public class DashboardStats {
         private double incidentGrowthRate;
     }
 }
-
