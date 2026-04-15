@@ -62,7 +62,7 @@ public class IncidentService {
     @Transactional
     public IncidentDTO createIncident(IncidentDTO incidentDTO) {
         Incident incident = new Incident();
-        incident.setIncidentId(generateIncidentId());
+        incident.setIncidentId(incidentIdGenerator.generateNextId());
         incident.setTitle(incidentDTO.getTitle());
         incident.setDescription(incidentDTO.getDescription());
         incident.setSeverity(incidentDTO.getSeverity());
@@ -102,7 +102,10 @@ public class IncidentService {
         incident.setTitle(incidentDTO.getTitle());
         incident.setDescription(incidentDTO.getDescription());
         incident.setSeverity(incidentDTO.getSeverity());
+        
+        Incident.Status oldStatus = incident.getStatus();
         incident.setStatus(incidentDTO.getStatus());
+        
         incident.setIncidentType(incidentDTO.getIncidentType());
         incident.setSourceIp(incidentDTO.getSourceIp());
         incident.setDestinationIp(incidentDTO.getDestinationIp());
@@ -110,7 +113,8 @@ public class IncidentService {
         incident.setMalwareFamily(incidentDTO.getMalwareFamily());
         incident.setAffectedAssets(incidentDTO.getAffectedAssets());
         
-        if (incidentDTO.getStatus() == Incident.Status.RESOLVED && incident.getResolvedAt() == null) {
+        // Ensure resolvedAt is set when status changes to RESOLVED
+        if (incidentDTO.getStatus() == Incident.Status.RESOLVED && oldStatus != Incident.Status.RESOLVED) {
             incident.setResolvedAt(LocalDateTime.now());
         }
         
@@ -131,7 +135,6 @@ public class IncidentService {
         Incident incident = incidentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Incident not found"));
         incidentRepository.delete(incident);
-        
         log.info("Deleted incident: {}", incident.getIncidentId());
     }
     
@@ -141,7 +144,10 @@ public class IncidentService {
         stats.setTotalIncidents(incidentRepository.count());
         stats.setOpenIncidents(incidentRepository.countOpenIncidents());
         stats.setCriticalAlerts(alertRepository.countCriticalAlerts());
-        stats.setResolvedToday(incidentRepository.countResolvedToday(LocalDate.now().atStartOfDay()));
+        
+        // Fix: Count incidents resolved today by checking both status and date
+        LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
+        stats.setResolvedToday(incidentRepository.countResolvedToday(startOfToday));
         
         stats.setThreatIndicators(calculateThreatIndicators());
         
@@ -183,7 +189,6 @@ public class IncidentService {
         long criticalIncidents = incidentRepository.findBySeverity(Incident.Severity.CRITICAL).size();
         long highIncidents = incidentRepository.findBySeverity(Incident.Severity.HIGH).size();
         long newAlerts = alertRepository.findNewAlerts().size();
-        
         return criticalIncidents + highIncidents + newAlerts;
     }
     
@@ -222,14 +227,5 @@ public class IncidentService {
                 .sorted((a, b) -> b.getTimestamp().compareTo(a.getTimestamp()))
                 .limit(10)
                 .collect(Collectors.toList());
-    }
-    
-    /*private String generateIncidentId() {
-        return "INC-" + LocalDate.now().getYear() + "-" + 
-               String.format("%04d", incidentRepository.count() + 1);
-    }*/
-
-    private String generateIncidentId() {
-        return incidentIdGenerator.generateNextId();
     }
 }

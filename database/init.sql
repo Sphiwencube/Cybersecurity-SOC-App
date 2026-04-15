@@ -115,15 +115,15 @@ INSERT INTO threat_intelligence (indicator, indicator_type, threat_type, confide
 ('suspicious@evil.com', 'EMAIL', 'Spam', 75, 'Internal', 'Email address used in phishing campaign');
 
 -- Insert sample incidents
-INSERT INTO incidents (incident_id, title, description, severity, status, incident_type, source_ip, destination_ip, attack_vector, created_by) VALUES
-('INC-2026-001', 'Ransomware Attack on Finance Dept', 'Detected ransomware activity on finance department workstations', 'CRITICAL', 'OPEN', 'Malware', '10.0.1.50', '10.0.2.100', 'Phishing Email', 1),
-('INC-2026-002', 'Suspicious Network Traffic', 'Unusual outbound connections detected from server room', 'HIGH', 'IN_PROGRESS', 'Network Intrusion', '10.0.5.20', '185.220.101.42', 'C2 Communication', 1),
-('INC-2026-003', 'Failed Login Attempts', 'Multiple failed login attempts on admin portal', 'MEDIUM', 'RESOLVED', 'Brute Force', '203.0.113.45', '10.0.1.10', 'Credential Stuffing', 1),
-('INC-2026-004', 'Data Exfiltration Attempt', 'Large data transfer detected to external IP', 'HIGH', 'OPEN', 'Data Breach', '10.0.3.75', '198.51.100.25', 'Unknown', 1);
+INSERT INTO incidents (incident_id, title, description, severity, status, incident_type, source_ip, destination_ip, attack_vector, created_by, resolved_at) VALUES
+('INC-2026-001', 'Ransomware Attack on Finance Dept', 'Detected ransomware activity on finance department workstations', 'CRITICAL', 'OPEN', 'Malware', '10.0.1.50', '10.0.2.100', 'Phishing Email', 1, NULL),
+('INC-2026-002', 'Suspicious Network Traffic', 'Unusual outbound connections detected from server room', 'HIGH', 'IN_PROGRESS', 'Network Intrusion', '10.0.5.20', '185.220.101.42', 'C2 Communication', 1, NULL),
+('INC-2026-003', 'Failed Login Attempts', 'Multiple failed login attempts on admin portal', 'MEDIUM', 'RESOLVED', 'Brute Force', '203.0.113.45', '10.0.1.10', 'Credential Stuffing', 1, CURRENT_TIMESTAMP),
+('INC-2026-004', 'Data Exfiltration Attempt', 'Large data transfer detected to external IP', 'HIGH', 'OPEN', 'Data Breach', '10.0.3.75', '198.51.100.25', 'Unknown', 1, NULL);
 
 -- Insert sample alerts
-INSERT INTO alerts (alert_name, severity, status, source, description) VALUES
-('Malware Detection Alert', 'CRITICAL', 'NEW', 'EDR', 'Malware signature detected on endpoint'),
-('DDoS Attack Detected', 'HIGH', 'ACKNOWLEDGED', 'IDS', 'Potential DDoS attack in progress'),
-('Privilege Escalation', 'HIGH', 'NEW', 'SIEM', 'Suspicious privilege escalation detected'),
-('Firewall Block', 'LOW', 'RESOLVED', 'Firewall', 'Connection blocked by firewall rule');
+INSERT INTO alerts (alert_name, severity, status, source, description, acknowledged_at, acknowledged_by, resolved_at) VALUES
+('Malware Detection Alert', 'CRITICAL', 'NEW', 'EDR', 'Malware signature detected on endpoint', NULL, NULL, NULL),
+('DDoS Attack Detected', 'HIGH', 'ACKNOWLEDGED', 'IDS', 'Potential DDoS attack in progress', CURRENT_TIMESTAMP, 1, NULL),
+('Privilege Escalation', 'HIGH', 'NEW', 'SIEM', 'Suspicious privilege escalation detected', NULL, NULL, NULL),
+('Firewall Block', 'LOW', 'RESOLVED', 'Firewall', 'Connection blocked by firewall rule', CURRENT_TIMESTAMP, 1, CURRENT_TIMESTAMP);

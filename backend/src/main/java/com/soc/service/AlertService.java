@@ -69,18 +69,13 @@ public class AlertService {
         return updatedAlert;
     }
     
-    // NEW: Acknowledge Alert
     @Transactional
     public Alert acknowledgeAlert(Long id) {
         Alert alert = alertRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Alert not found"));
         
         if (alert.getStatus() == Alert.Status.ACKNOWLEDGED) {
-            throw new RuntimeException("Alert is already acknowledged");
-        }
-        
-        if (alert.getStatus() == Alert.Status.RESOLVED) {
-            throw new RuntimeException("Cannot acknowledge a resolved alert");
+            return alert; // Already acknowledged
         }
         
         alert.setStatus(Alert.Status.ACKNOWLEDGED);
@@ -94,19 +89,14 @@ public class AlertService {
         }
         
         Alert updatedAlert = alertRepository.save(alert);
-        log.info("Alert {} acknowledged by user {}", id, alert.getAcknowledgedBy());
+        log.info("Alert {} acknowledged", id);
         return updatedAlert;
     }
     
-    // NEW: Resolve Alert
     @Transactional
     public Alert resolveAlert(Long id) {
         Alert alert = alertRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Alert not found"));
-        
-        if (alert.getStatus() == Alert.Status.RESOLVED) {
-            throw new RuntimeException("Alert is already resolved");
-        }
         
         alert.setStatus(Alert.Status.RESOLVED);
         alert.setResolvedAt(LocalDateTime.now());

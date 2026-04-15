@@ -14,9 +14,7 @@ public class IncidentIdGenerator {
 
     /**
      * Generates the next sequential incident ID for the current year
-     * Format: INC-YYYY-XXXX (e.g., INC-2026-0001)
-     * 
-     * @return the next available incident ID
+     * Format: INC-YYYY-XXX (e.g., INC-2026-001)
      */
     public String generateNextId() {
         int currentYear = Year.now().getValue();
@@ -28,17 +26,18 @@ public class IncidentIdGenerator {
         int nextNumber = 1;
         if (lastId != null && !lastId.isEmpty()) {
             try {
-                // Extract the number part from the last ID (e.g., "INC-2026-0034" -> 34)
-                String[] parts = lastId.split("-");
-                if (parts.length == 3) {
-                    nextNumber = Integer.parseInt(parts[2]) + 1;
+                // Extract the number part from the last ID (works for INC-2026-001 and INC-2026-0001)
+                int lastHyphen = lastId.lastIndexOf('-');
+                if (lastHyphen != -1) {
+                    String numberPart = lastId.substring(lastHyphen + 1);
+                    nextNumber = Integer.parseInt(numberPart) + 1;
                 }
             } catch (NumberFormatException e) {
-                // If parsing fails, default to 1
                 nextNumber = 1;
             }
         }
         
-        return String.format("%s%04d", yearPrefix, nextNumber);
+        // Using %03d as requested to maintain 3-digit sequence (e.g., 001, 002)
+        return String.format("%s%03d", yearPrefix, nextNumber);
     }
 }

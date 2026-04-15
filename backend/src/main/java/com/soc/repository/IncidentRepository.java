@@ -1,6 +1,7 @@
 package com.soc.repository;
 
 import com.soc.model.Incident;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -27,8 +28,8 @@ public interface IncidentRepository extends JpaRepository<Incident, Long> {
     @Query("SELECT COUNT(i) FROM Incident i WHERE i.severity = 'CRITICAL'")
     long countCriticalIncidents();
     
-    @Query("SELECT COUNT(i) FROM Incident i WHERE i.resolvedAt >= :startOfDay")
-    long countResolvedToday(LocalDateTime startOfDay);
+    @Query("SELECT COUNT(i) FROM Incident i WHERE i.resolvedAt >= :startOfDay OR (i.status = 'RESOLVED' AND i.updatedAt >= :startOfDay)")
+    long countResolvedToday(@Param("startOfDay") LocalDateTime startOfDay);
     
     @Query("SELECT i.severity, COUNT(i) FROM Incident i GROUP BY i.severity")
     List<Object[]> countBySeverity();
@@ -39,19 +40,23 @@ public interface IncidentRepository extends JpaRepository<Incident, Long> {
     @Query("SELECT i.incidentType, COUNT(i) FROM Incident i GROUP BY i.incidentType")
     List<Object[]> countByType();
     
-    @Query("SELECT DATE(i.createdAt), COUNT(i) FROM Incident i WHERE i.createdAt >= :startDate GROUP BY DATE(i.createdAt)")
-    List<Object[]> countByDate(LocalDateTime startDate);
+    @Query("SELECT CAST(i.createdAt AS date), COUNT(i) FROM Incident i WHERE i.createdAt >= :startDate GROUP BY CAST(i.createdAt AS date)")
+    List<Object[]> countByDate(@Param("startDate") LocalDateTime startDate);
 
     List<Incident> findByCreatedAtAfter(LocalDateTime dateTime);
     
     @Query("SELECT COUNT(i) FROM Incident i WHERE i.createdAt > :since")
     long countByCreatedAtAfter(@Param("since") LocalDateTime since);
 
-        /**
-     * Find the last incident ID for a specific year to determine the next sequence number
-     * @param year the year to search for
-     * @return the last incident ID (e.g., "INC-2026-0034") or null if none exists
+    /**
+     * Find the last incident ID for a specific year.
+     * Sorts by length first, then value, to handle inconsistent padding (e.g. INC-2026-001 vs INC-2026-0001)
      */
-    @Query("SELECT i.incidentId FROM Incident i WHERE i.incidentId LIKE CONCAT('INC-', :year, '-%') ORDER BY i.incidentId DESC LIMIT 1")
-    String findLastIncidentIdForYear(@Param("year") int year);
+    @Query("SELECT i.incidentId FROM Incident i WHERE i.incidentId LIKE CONCAT('INC-', :year, '-%') ORDER BY LENGTH(i.incidentId) DESC, i.incidentId DESC")
+    List<String> findLastIncidentIdForYear(@Param("year") int year, Pageable pageable);
+
+    default String findLastIncidentIdForYear(int year) {
+        List<String> ids = findLastIncidentIdForYear(year, Pageable.ofSize(1));
+        return ids.isEmpty() ? null : ids.get(0);
+    }
 }

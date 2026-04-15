@@ -14,6 +14,11 @@ interface Recommendation {
   applying?: boolean;
 }
 
+interface ForecastItem {
+  label: string;
+  value: number;
+}
+
 @Component({
   selector: 'app-analytics',
   standalone: true,
@@ -55,7 +60,7 @@ interface Recommendation {
           </div>
           <div class="empty-state" *ngIf="recommendations.length === 0">
             <i class="fas fa-robot"></i>
-            <p>Loading AI recommendations...</p>
+            <p>No immediate actions required. All systems clear.</p>
           </div>
         </div>
         
@@ -94,6 +99,9 @@ interface Recommendation {
                   <span class="node-id">{{ node.label }}</span>
                   <span class="node-title">{{ node.title }}</span>
                   <span class="node-type">{{ node.type }}</span>
+                </div>
+                <div class="empty-visualization" *ngIf="forestData.nodes.length === 0">
+                  <p>No incidents found in the last 30 days.</p>
                 </div>
               </div>
             </div>
@@ -153,410 +161,80 @@ interface Recommendation {
           </div>
         </div>
         
-        <!-- Incident Forecast -->
+        <!-- Incident Forecast (Hourly) -->
         <div class="analytics-card" data-aos="fade-up" data-aos-delay="300">
           <div class="card-header">
-            <h3><i class="fas fa-chart-line"></i> Incident Forecast</h3>
+            <h3><i class="fas fa-chart-line"></i> Hourly Incident Forecast</h3>
           </div>
-          <div class="forecast-chart">
-            <div class="forecast-bar" *ngFor="let day of forecastData; let i = index">
-              <div class="bar" [style.height.%]="day.value * 5">
-                <span class="bar-tooltip">{{ day.value }} incidents</span>
+          <div class="forecast-chart" *ngIf="forecastData.length > 0">
+            <div class="forecast-bar" *ngFor="let item of forecastData">
+              <div class="bar" [style.height.px]="calculateBarHeight(item.value)">
+                <span class="bar-tooltip">{{ item.value }} incidents</span>
               </div>
-              <span class="bar-label">{{ day.day }}</span>
+              <span class="bar-label">{{ item.label }}</span>
             </div>
+          </div>
+          <div class="empty-state" *ngIf="forecastData.length === 0">
+            <i class="fas fa-clock"></i>
+            <p>No forecast data available for the last 12 hours.</p>
           </div>
         </div>
       </div>
     </div>
   `,
   styles: [`
-    .analytics-page {
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-    }
-    
-    .page-header h2 {
-      font-size: 1.5rem;
-    }
-    
-    .analytics-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 1.5rem;
-    }
-    
-    @media (max-width: 768px) {
-      .analytics-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-    
-    .analytics-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-lg);
-      padding: 1.5rem;
-    }
-    
-    .analytics-card.full-width {
-      grid-column: 1 / -1;
-    }
-    
-    .card-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 1.5rem;
-    }
-    
-    .card-header h3 {
-      font-size: 1rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      color: var(--text-primary);
-      margin: 0;
-    }
-    
-    .card-header h3 i {
-      color: var(--accent-cyan);
-    }
-    
-    .metric-row {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      margin-bottom: 1rem;
-    }
-    
-    .metric-label {
-      min-width: 180px;
-      font-size: 0.875rem;
-      color: var(--text-secondary);
-    }
-    
-    .progress-bar {
-      flex: 1;
-      height: 8px;
-      background: var(--secondary-bg);
-      border-radius: 4px;
-      overflow: hidden;
-    }
-    
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue));
-      border-radius: 4px;
-      transition: width 1s ease;
-    }
-    
-    .progress-fill.warning {
-      background: linear-gradient(90deg, var(--accent-yellow), var(--accent-orange));
-    }
-    
-    .progress-fill.success {
-      background: linear-gradient(90deg, var(--accent-green), #059669);
-    }
-    
-    .metric-value {
-      min-width: 50px;
-      text-align: right;
-      font-weight: 600;
-      color: var(--text-primary);
-    }
-    
-    .forecast-chart {
-      display: flex;
-      align-items: flex-end;
-      justify-content: space-around;
-      height: 200px;
-      padding: 1rem 0;
-    }
-    
-    .forecast-bar {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    
-    .bar {
-      width: 40px;
-      background: linear-gradient(180deg, var(--accent-cyan), var(--accent-blue));
-      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
-      position: relative;
-      transition: all 0.3s ease;
-      cursor: pointer;
-      min-height: 20px;
-    }
-    
-    .bar:hover {
-      filter: brightness(1.2);
-    }
-    
-    .bar-tooltip {
-      position: absolute;
-      bottom: 100%;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--secondary-bg);
-      padding: 0.25rem 0.5rem;
-      border-radius: var(--radius-sm);
-      font-size: 0.75rem;
-      white-space: nowrap;
-      opacity: 0;
-      transition: opacity 0.2s;
-      pointer-events: none;
-      margin-bottom: 0.5rem;
-    }
-    
-    .bar:hover .bar-tooltip {
-      opacity: 1;
-    }
-    
-    .bar-label {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-    }
-    
-    .recommendations-list {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-    
-    .recommendation-item {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      padding: 1rem;
-      background: var(--secondary-bg);
-      border-radius: var(--radius-md);
-      border-left: 3px solid transparent;
-    }
-    
-    .recommendation-item:has(.rec-priority.high) {
-      border-left-color: var(--accent-red);
-    }
-    
-    .rec-priority {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.875rem;
-      flex-shrink: 0;
-    }
-    
-    .rec-priority.high {
-      background: rgba(239, 68, 68, 0.2);
-      color: var(--accent-red);
-    }
-    
-    .rec-priority.medium {
-      background: rgba(245, 158, 11, 0.2);
-      color: var(--accent-yellow);
-    }
-    
-    .rec-priority.low {
-      background: rgba(16, 185, 129, 0.2);
-      color: var(--accent-green);
-    }
-    
-    .rec-content {
-      flex: 1;
-    }
-    
-    .rec-content h4 {
-      font-size: 0.9375rem;
-      margin-bottom: 0.25rem;
-      color: var(--text-primary);
-    }
-    
-    .rec-content p {
-      font-size: 0.8125rem;
-      color: var(--text-secondary);
-      margin-bottom: 0.25rem;
-    }
-    
-    .rec-meta {
-      font-size: 0.75rem;
-      color: var(--accent-cyan);
-    }
-    
-    /* Incident Forest Styles */
-    .incident-forest .forest-stats {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
-    
-    .stat-box {
-      background: var(--secondary-bg);
-      padding: 1rem;
-      border-radius: var(--radius-md);
-      text-align: center;
-    }
-    
-    .stat-number {
-      display: block;
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: var(--accent-cyan);
-    }
-    
-    .stat-label {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-    }
-    
-    .forest-visualization {
-      background: var(--secondary-bg);
-      border-radius: var(--radius-md);
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-      min-height: 200px;
-    }
-    
-    .forest-nodes {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-    }
-    
-    .forest-node {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-md);
-      padding: 0.75rem;
-      min-width: 150px;
-      display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
-    }
-    
-    .forest-node.severity-critical {
-      border-color: var(--severity-critical);
-      box-shadow: 0 0 10px rgba(220, 38, 38, 0.3);
-    }
-    
-    .forest-node.severity-high {
-      border-color: var(--severity-high);
-    }
-    
-    .forest-node.severity-medium {
-      border-color: var(--severity-medium);
-    }
-    
-    .node-id {
-      font-size: 0.75rem;
-      color: var(--accent-cyan);
-      font-weight: 600;
-    }
-    
-    .node-title {
-      font-size: 0.8125rem;
-      color: var(--text-primary);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    
-    .node-type {
-      font-size: 0.6875rem;
-      color: var(--text-muted);
-    }
-    
-    .forest-patterns h4 {
-      font-size: 0.9375rem;
-      margin-bottom: 1rem;
-      color: var(--text-primary);
-    }
-    
-    .pattern-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-    
-    .pattern-item {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      padding: 0.75rem;
-      background: var(--secondary-bg);
-      border-radius: var(--radius-md);
-    }
-    
-    .pattern-vector {
-      font-weight: 500;
-      color: var(--text-primary);
-      min-width: 150px;
-    }
-    
-    .pattern-count {
-      font-size: 0.875rem;
-      color: var(--accent-cyan);
-    }
-    
-    .pattern-severities {
-      display: flex;
-      gap: 0.5rem;
-      margin-left: auto;
-    }
-    
-    .severity-tag {
-      font-size: 0.6875rem;
-      padding: 0.125rem 0.375rem;
-      border-radius: var(--radius-sm);
-      text-transform: uppercase;
-    }
-    
-    .severity-tag.sev-critical {
-      background: rgba(239, 68, 68, 0.2);
-      color: var(--severity-critical);
-    }
-    
-    .severity-tag.sev-high {
-      background: rgba(249, 115, 22, 0.2);
-      color: var(--severity-high);
-    }
-    
-    .severity-tag.sev-medium {
-      background: rgba(234, 179, 8, 0.2);
-      color: var(--severity-medium);
-    }
-    
-    .empty-state {
-      text-align: center;
-      padding: 3rem;
-      color: var(--text-muted);
-    }
-    
-    .empty-state i {
-      font-size: 2rem;
-      margin-bottom: 0.5rem;
-    }
+    .analytics-page { display: flex; flex-direction: column; gap: 1.5rem; }
+    .page-header h2 { font-size: 1.5rem; }
+    .analytics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+    @media (max-width: 768px) { .analytics-grid { grid-template-columns: 1fr; } }
+    .analytics-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.5rem; }
+    .analytics-card.full-width { grid-column: 1 / -1; }
+    .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+    .card-header h3 { font-size: 1rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text-primary); margin: 0; }
+    .card-header h3 i { color: var(--accent-cyan); }
+    .metric-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+    .metric-label { min-width: 180px; font-size: 0.875rem; color: var(--text-secondary); }
+    .progress-bar { flex: 1; height: 8px; background: var(--secondary-bg); border-radius: 4px; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue)); border-radius: 4px; transition: width 1s ease; }
+    .progress-fill.warning { background: linear-gradient(90deg, var(--accent-yellow), var(--accent-orange)); }
+    .progress-fill.success { background: linear-gradient(90deg, var(--accent-green), #059669); }
+    .metric-value { min-width: 50px; text-align: right; font-weight: 600; color: var(--text-primary); }
+    .forecast-chart { display: flex; align-items: flex-end; justify-content: space-around; height: 200px; padding: 1rem 0; overflow-x: auto; }
+    .forecast-bar { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; min-width: 45px; }
+    .bar { width: 30px; background: linear-gradient(180deg, var(--accent-cyan), var(--accent-blue)); border-radius: var(--radius-sm) var(--radius-sm) 0 0; position: relative; transition: all 0.3s ease; cursor: pointer; }
+    .bar:hover { filter: brightness(1.2); }
+    .bar-tooltip { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: var(--secondary-bg); padding: 0.25rem 0.5rem; border-radius: var(--radius-sm); font-size: 0.75rem; white-space: nowrap; opacity: 0; transition: opacity 0.2s; pointer-events: none; margin-bottom: 0.5rem; }
+    .bar:hover .bar-tooltip { opacity: 1; }
+    .bar-label { font-size: 0.65rem; color: var(--text-muted); }
+    .recommendations-list { display: flex; flex-direction: column; gap: 1rem; }
+    .recommendation-item { display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--secondary-bg); border-radius: var(--radius-md); border-left: 3px solid transparent; }
+    .rec-priority.high { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); }
+    .rec-priority.medium { background: rgba(245, 158, 11, 0.2); color: var(--accent-yellow); }
+    .rec-priority.low { background: rgba(16, 185, 129, 0.2); color: var(--accent-green); }
+    .rec-content h4 { font-size: 0.9375rem; margin-bottom: 0.25rem; color: var(--text-primary); }
+    .rec-content p { font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 0.25rem; }
+    .rec-meta { font-size: 0.75rem; color: var(--accent-cyan); }
+    .incident-forest .forest-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+    .stat-box { background: var(--secondary-bg); padding: 1rem; border-radius: var(--radius-md); text-align: center; }
+    .stat-number { display: block; font-size: 1.5rem; font-weight: 700; color: var(--accent-cyan); }
+    .stat-label { font-size: 0.75rem; color: var(--text-muted); }
+    .forest-visualization { background: var(--secondary-bg); border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 1.5rem; min-height: 150px; }
+    .forest-nodes { display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; }
+    .forest-node { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.5rem; min-width: 120px; display: flex; flex-direction: column; }
+    .node-id { font-size: 0.7rem; color: var(--accent-cyan); font-weight: 600; }
+    .node-title { font-size: 0.75rem; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .node-type { font-size: 0.65rem; color: var(--text-muted); }
+    .empty-state { text-align: center; padding: 2rem; color: var(--text-muted); }
+    .empty-state i { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    .severity-critical { border-color: var(--severity-critical) !important; box-shadow: 0 0 5px rgba(220, 38, 38, 0.2); }
+    .severity-high { border-color: var(--severity-high) !important; }
+    .severity-medium { border-color: var(--severity-medium) !important; }
   `]
 })
 export class AnalyticsComponent implements OnInit {
   recommendations: Recommendation[] = [];
   forestData: any = null;
-  
-  forecastData = [
-    { day: 'Mon', value: 5 },
-    { day: 'Tue', value: 8 },
-    { day: 'Wed', value: 12 },
-    { day: 'Thu', value: 7 },
-    { day: 'Fri', value: 15 },
-    { day: 'Sat', value: 4 },
-    { day: 'Sun', value: 3 }
-  ];
+  forecastData: ForecastItem[] = [];
   
   private aiApiUrl = 'http://localhost:5000/api';
   
@@ -568,60 +246,52 @@ export class AnalyticsComponent implements OnInit {
   ngOnInit(): void {
     this.loadRecommendations();
     this.loadIncidentForest();
+    this.loadForecast();
   }
   
   loadRecommendations(): void {
     this.http.get<{ recommendations: Recommendation[] }>(`${this.aiApiUrl}/recommendations`).subscribe({
-      next: (response) => {
-        this.recommendations = response.recommendations;
-      },
-      error: (error) => {
-        console.error('Error loading recommendations:', error);
-      }
+      next: (response) => this.recommendations = response.recommendations,
+      error: (err) => console.error('Error loading recommendations:', err)
     });
   }
   
   loadIncidentForest(): void {
     this.http.get(`${this.aiApiUrl}/analytics/incident-forest`).subscribe({
-      next: (data) => {
-        this.forestData = data;
-      },
-      error: (error) => {
-        console.error('Error loading incident forest:', error);
-      }
+      next: (data) => this.forestData = data,
+      error: (err) => console.error('Error loading incident forest:', err)
     });
+  }
+
+  loadForecast(): void {
+    this.http.get<{ forecast: ForecastItem[] }>(`${this.aiApiUrl}/analytics/forecast`).subscribe({
+      next: (response) => this.forecastData = response.forecast,
+      error: (err) => console.error('Error loading forecast:', err)
+    });
+  }
+
+  calculateBarHeight(value: number): number {
+    // Basic scaling for the bar height (max height 160px)
+    const maxHeight = 160;
+    if (value === 0) return 5;
+    const height = value * 30;
+    return height > maxHeight ? maxHeight : height;
   }
   
   applyRecommendation(rec: Recommendation): void {
-    if (rec.action === 'none') {
-      return;
-    }
-    
+    if (rec.action === 'none') return;
     rec.applying = true;
-    
     this.http.post(`${this.aiApiUrl}/recommendations/${rec.id}/apply`, { action: rec.action }).subscribe({
       next: (response: any) => {
         rec.applying = false;
-        alert(response.message || 'Recommendation applied successfully!');
-        
-        // Navigate based on action
-        if (rec.action === 'review_critical') {
-          this.router.navigate(['/incidents'], { queryParams: { severity: 'CRITICAL' } });
-        } else if (rec.action === 'review_alerts') {
-          this.router.navigate(['/alerts']);
-        } else if (rec.action === 'assign_incidents') {
-          this.router.navigate(['/incidents'], { queryParams: { unassigned: 'true' } });
-        } else if (rec.action === 'review_stale') {
-          this.router.navigate(['/incidents'], { queryParams: { stale: 'true' } });
-        }
-        
-        // Refresh recommendations after a delay
-        setTimeout(() => this.loadRecommendations(), 2000);
+        // Navigation logic...
+        if (rec.action === 'review_critical') this.router.navigate(['/incidents'], { queryParams: { severity: 'CRITICAL' } });
+        else if (rec.action === 'review_alerts') this.router.navigate(['/alerts']);
+        setTimeout(() => this.loadRecommendations(), 1000);
       },
-      error: (error) => {
+      error: (err) => {
         rec.applying = false;
-        console.error('Error applying recommendation:', error);
-        alert('Failed to apply recommendation: ' + (error.error?.error || 'Unknown error'));
+        console.error('Error applying recommendation:', err);
       }
     });
   }

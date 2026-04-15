@@ -63,25 +63,19 @@ public class AlertController {
     // ACKNOWLEDGE ALERT
     @PostMapping("/{id}/acknowledge")
     @PreAuthorize("hasAnyRole('ADMIN', 'ANALYST')")
-    public ResponseEntity<?> acknowledgeAlert(@PathVariable Long id) {
+    public ResponseEntity<Alert> acknowledgeAlert(@PathVariable Long id) {
         log.info("Acknowledging alert: {}", id);
         Alert alert = alertService.acknowledgeAlert(id);
-        return ResponseEntity.ok(Map.of(
-            "message", "Alert acknowledged successfully",
-            "alert", alert
-        ));
+        return ResponseEntity.ok(alert);
     }
     
     // RESOLVE ALERT
     @PostMapping("/{id}/resolve")
     @PreAuthorize("hasAnyRole('ADMIN', 'ANALYST')")
-    public ResponseEntity<?> resolveAlert(@PathVariable Long id) {
+    public ResponseEntity<Alert> resolveAlert(@PathVariable Long id) {
         log.info("Resolving alert: {}", id);
         Alert alert = alertService.resolveAlert(id);
-        return ResponseEntity.ok(Map.of(
-            "message", "Alert resolved successfully",
-            "alert", alert
-        ));
+        return ResponseEntity.ok(alert);
     }
     
     @GetMapping("/stats/critical")
