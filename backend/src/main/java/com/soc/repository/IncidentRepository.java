@@ -48,10 +48,6 @@ public interface IncidentRepository extends JpaRepository<Incident, Long> {
     @Query("SELECT COUNT(i) FROM Incident i WHERE i.createdAt > :since")
     long countByCreatedAtAfter(@Param("since") LocalDateTime since);
 
-    /**
-     * Find the last incident ID for a specific year.
-     * Sorts by length first, then value, to handle inconsistent padding (e.g. INC-2026-001 vs INC-2026-0001)
-     */
     @Query("SELECT i.incidentId FROM Incident i WHERE i.incidentId LIKE CONCAT('INC-', :year, '-%') ORDER BY LENGTH(i.incidentId) DESC, i.incidentId DESC")
     List<String> findLastIncidentIdForYear(@Param("year") int year, Pageable pageable);
 
