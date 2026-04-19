@@ -2,9 +2,9 @@
 
 ## Overview
 
-This is a complete **Cybersecurity Incident Intelligence Database** application built as a full-stack solution for your CSIT701 Advanced Database Systems project. It features a modern SOC (Security Operations Center) interface with animations, AI-powered analytics, and comprehensive incident management capabilities.
+This is a complete **Cybersecurity Incident Intelligence Database** application built as a full-stack solution for CSIT701 Advanced Database Systems project. It features a modern SOC (Security Operations Center) interface with animations, AI-powered analytics, and comprehensive incident management capabilities.
 
-## What You've Got
+## What To Expect On This Project
 
 ### 1. Complete Application Stack
 
@@ -113,14 +113,8 @@ cybersecurity-soc-app/
 
 6. **Access the application:**
    - Dashboard: http://localhost:4200
-   - Login with: `admin` / `admin123`
-
-## Default Credentials
-
-| Username | Password | Role |
-|----------|----------|------|
-| admin | admin123 | ADMIN |
-
+   - Sign In
+     
 ## API Endpoints
 
 ### Authentication
@@ -227,6 +221,3 @@ For issues:
 2. Review Docker logs: `docker-compose logs`
 3. Check browser console for frontend errors
 
----
-
-**Good luck with your project!** 
