@@ -131,28 +131,31 @@ Chart.register(...registerables);
         <div class="analytics-card" data-aos="fade-up" data-aos-delay="200">
           <div class="card-header">
             <h3><i class="fas fa-brain"></i> Predictive Analysis</h3>
+            <span class="last-updated" *ngIf="predictiveMetrics.total_analyzed > 0">
+              {{ predictiveMetrics.total_analyzed }} incidents analyzed
+            </span>
           </div>
           <div class="analytics-content">
             <div class="metric-row">
               <span class="metric-label">Threat Prediction Accuracy</span>
               <div class="progress-bar">
-                <div class="progress-fill" style="width: 94%"></div>
+                <div class="progress-fill" [style.width.%]="predictiveMetrics.threat_prediction_accuracy"></div>
               </div>
-              <span class="metric-value">94%</span>
+              <span class="metric-value">{{ predictiveMetrics.threat_prediction_accuracy }}%</span>
             </div>
             <div class="metric-row">
               <span class="metric-label">False Positive Rate</span>
               <div class="progress-bar">
-                <div class="progress-fill warning" style="width: 6%"></div>
+                <div class="progress-fill warning" [style.width.%]="predictiveMetrics.false_positive_rate"></div>
               </div>
-              <span class="metric-value">6%</span>
+              <span class="metric-value">{{ predictiveMetrics.false_positive_rate }}%</span>
             </div>
             <div class="metric-row">
               <span class="metric-label">Model Confidence</span>
               <div class="progress-bar">
-                <div class="progress-fill success" style="width: 88%"></div>
+                <div class="progress-fill success" [style.width.%]="predictiveMetrics.model_confidence"></div>
               </div>
-              <span class="metric-value">88%</span>
+              <span class="metric-value">{{ predictiveMetrics.model_confidence }}%</span>
             </div>
           </div>
         </div>
@@ -600,27 +603,27 @@ Chart.register(...registerables);
       box-shadow: 0 0 8px rgba(54, 162, 235, 0.4);
     }
     .dot.med { 
-  background: rgb(255, 206, 86); /* Yellow */
-  box-shadow: 0 0 8px rgba(255, 206, 86, 0.4);
-}
+      background: rgb(255, 206, 86); /* Yellow */
+      box-shadow: 0 0 8px rgba(255, 206, 86, 0.4);
+    }
 
-.dot.high { 
-  background: rgb(255, 99, 132); /* Red */
-  box-shadow: 0 0 8px rgba(255, 99, 132, 0.4);
-}
+    .dot.high { 
+      background: rgb(255, 99, 132); /* Red */
+      box-shadow: 0 0 8px rgba(255, 99, 132, 0.4);
+    }
 
-.current-dot { 
-  background: rgb(56, 189, 248); /* Cyan */
-  border: 2px solid rgb(255, 255, 255);
-  box-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
-  width: 10px;
-  height: 10px;
-}
+    .current-dot { 
+      background: rgb(56, 189, 248); /* Cyan */
+      border: 2px solid rgb(255, 255, 255);
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
+      width: 10px;
+      height: 10px;
+    }
 
-.legend-item.current {
-  color: rgb(255, 255, 255);
-  font-weight: 500;
-}
+    .legend-item.current {
+      color: rgb(255, 255, 255);
+      font-weight: 500;
+    }
   `]
 })
 export class AnalyticsComponent implements OnInit, OnDestroy, AfterViewInit {
@@ -628,6 +631,13 @@ export class AnalyticsComponent implements OnInit, OnDestroy, AfterViewInit {
   forestData: any = null;
 
   hourlyChart: Chart | null = null;
+
+  predictiveMetrics: any = {
+    threat_prediction_accuracy: 0,
+    false_positive_rate: 0,
+    model_confidence: 0,
+    total_analyzed: 0
+  };
 
   @ViewChild('hourlyCanvas', { static: false }) hourlyCanvas!: ElementRef<HTMLCanvasElement>;
 
@@ -645,6 +655,7 @@ export class AnalyticsComponent implements OnInit, OnDestroy, AfterViewInit {
   ngOnInit(): void {
     this.loadRecommendations();
     this.loadIncidentForest();
+    this.loadPredictiveMetrics();
   }
 
   ngAfterViewInit(): void {
@@ -790,9 +801,6 @@ export class AnalyticsComponent implements OnInit, OnDestroy, AfterViewInit {
     const values = hourlyData.map((item: any) => item.count);
     const isCurrent = hourlyData.map((item: any) => item.is_current);
 
-    // const values = hourlyData.map(item => item.count);
-
-
     const backgroundColors = values.map((val: number, idx: number) => {
       if (isCurrent[idx]) {
         return 'rgb(56, 189, 248)';
@@ -809,6 +817,7 @@ export class AnalyticsComponent implements OnInit, OnDestroy, AfterViewInit {
     const borderWidths = values.map((_: any, idx: number) =>
       isCurrent[idx] ? 2 : 0
     );
+
     this.hourlyChart.data.labels = labels;
     this.hourlyChart.data.datasets[0].data = values;
     this.hourlyChart.data.datasets[0].backgroundColor = backgroundColors;
@@ -820,6 +829,16 @@ export class AnalyticsComponent implements OnInit, OnDestroy, AfterViewInit {
 
   }
 
+  loadPredictiveMetrics(): void {
+    this.http.get<any>('http://localhost:5000/api/analytics/predictive-simple').subscribe({
+      next: (data) => {
+        this.predictiveMetrics = data;
+      },
+      error: (error) => {
+        console.error('Error loading predictive metrics:', error);
+      }
+    });
+  }
 
   loadRecommendations(): void {
     this.http.get<{ recommendations: Recommendation[] }>(`${this.aiApiUrl}/recommendations`).subscribe({
@@ -855,7 +874,6 @@ export class AnalyticsComponent implements OnInit, OnDestroy, AfterViewInit {
         rec.applying = false;
         alert(response.message || 'Recommendation applied successfully!');
 
-        // Navigate based on action
         if (rec.action === 'review_critical') {
           this.router.navigate(['/incidents'], { queryParams: { severity: 'CRITICAL' } });
         } else if (rec.action === 'review_alerts') {
